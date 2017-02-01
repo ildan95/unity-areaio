@@ -15,26 +15,32 @@ public class PlayerController : MonoBehaviour {
     private float moveCooldownTime = 0;
     public void Awake()
     {
+        Debug.Log("Choosing input");
 #if UNITY_EDITOR
+        Debug.Log("Editor input");
         _input = new InputPC();
 #elif UNITY_STANDALONE
+        Debug.Log("Standalone input");
         _input = new InputPC();
 #elif UNITY_ANDROID
+        Debug.Log("Android input");
         _input = new InputAndroid();
+        Debug.Log("End android input");
 #endif
     }
 
     void Start()
     {
-        playerModel = new BasicPlayerModel(gameObject, Color.red);
+        playerModel = new BasicPlayerModel(gameObject, GameManager.randomHueColor());
         playerModel.X = (int)Math.Round(transform.position.x, 0);
-        playerModel.Z = (int)Math.Round(transform.position.z, 0);
-        gameObject.GetComponent<MeshRenderer>().material.color = playerModel.color;
+        playerModel.Y = (int)Math.Round(transform.position.y, 0);
+        gameObject.GetComponent<SpriteRenderer>().color = playerModel.color;
         playerModel.addInitBlocks(2);
     }
 
     void Update()
     {
+        _input.Update();
         playerModel.direction = checkDirection();
         if (moveCooldownTime >= moveCooldown)
         {
@@ -50,9 +56,9 @@ public class PlayerController : MonoBehaviour {
     }
 
     public void updateBlock() {
-        if (Area.isOut(playerModel.X, playerModel.Z))
+        if (Area.isOut(playerModel.X, playerModel.Y))
             return;
-        AreaBlock block = Area.blocks[playerModel.X][playerModel.Z];
+        AreaBlock block = Area.blocks[playerModel.X][playerModel.Y];
         if (block.PreOwner != null)
         {
             if (block.PreOwner == gameObject)
@@ -88,10 +94,10 @@ public class PlayerController : MonoBehaviour {
         switch (playerModel.direction)
         {
             case Direction.Up:
-                playerModel.Z += playerModel.speed;
+                playerModel.Y += playerModel.speed;
                 break;
             case Direction.Down:
-                playerModel.Z -= playerModel.speed;
+                playerModel.Y -= playerModel.speed;
                 break;
             case Direction.Right:
                 playerModel.X += playerModel.speed;
@@ -101,10 +107,10 @@ public class PlayerController : MonoBehaviour {
                 break;
         }
         
-        if (Area.isOut(playerModel.X, playerModel.Z))
+        if (Area.isOut(playerModel.X, playerModel.Y))
             died();
         else
-            transform.localPosition = new Vector3(playerModel.X, 2, playerModel.Z);
+            transform.localPosition = new Vector3(playerModel.X, playerModel.Y,0);
     }
 
     private void stop()

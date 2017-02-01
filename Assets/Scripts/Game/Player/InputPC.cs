@@ -2,21 +2,23 @@
 
 public class InputPC:IInput {
 
-    public override bool isUpKey()
+    public bool isUpKey()
     {
         return Input.GetKeyDown(KeyCode.W);
     }
-    public override bool isDownKey()
+    public bool isDownKey()
     {
         return Input.GetKeyDown(KeyCode.S);
     }
-    public override bool isRightKey()
+    public bool isRightKey()
     {
         return Input.GetKeyDown(KeyCode.D);
     }
-    public override bool isLeftKey()
+    public bool isLeftKey()
     {
         return Input.GetKeyDown(KeyCode.A);
     }
+
+    public void Update() { }
 
 }

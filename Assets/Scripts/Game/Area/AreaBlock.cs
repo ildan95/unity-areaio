@@ -6,7 +6,7 @@ public class AreaBlock : MonoBehaviour {
     public GameObject Owner { get; private set; }
     public GameObject PreOwner { get; private set; }
     public int X { get; private set; }
-    public int Z { get; private set; }
+    public int Y { get; private set; }
 
     public bool isFree
     {
@@ -24,7 +24,7 @@ public class AreaBlock : MonoBehaviour {
 
     void Start () {
         X = (int)System.Math.Round(transform.position.x, 0);
-        Z = (int)System.Math.Round(transform.position.z, 0);
+        Y = (int)System.Math.Round(transform.position.y, 0);
     }
 	
 	// Update is called once per frame
@@ -35,18 +35,16 @@ public class AreaBlock : MonoBehaviour {
     public void setOwner(GameObject obj)
     {
         Owner = obj;
-        gameObject.GetComponent<MeshRenderer>().material.color = Owner.GetComponent<MeshRenderer>().material.color;
+        float hue = obj.GetComponent<PlayerController>().playerModel.hueColor;
+        gameObject.GetComponent<SpriteRenderer>().color = Color.HSVToRGB(hue, 1, 1);
         PreOwner = null;
     }
 
     public void setPreOwner(GameObject obj)
     {
         PreOwner = obj;
-        var mesh = obj.GetComponent<MeshRenderer>();
-        Color c = mesh.material.color;
-        c.g = 0.5f;
-        gameObject.GetComponent<MeshRenderer>().material.color = c;
-        //obj.GetComponent<PlayerController>().playerModel.reservateBlock(this);
+        float hue = obj.GetComponent<PlayerController>().playerModel.hueColor;
+        gameObject.GetComponent<SpriteRenderer>().color = Color.HSVToRGB(hue,0.5f,1);
     }
 
     

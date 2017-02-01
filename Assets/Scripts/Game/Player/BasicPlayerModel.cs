@@ -7,16 +7,15 @@ public class BasicPlayerModel : IPlayerModel
     private List<AreaBlock> blocks = new List<AreaBlock>();
     public int xMin { get; private set; }
     public int xMax { get; private set; }
-    public int zMin { get; private set; }
-    public int zMax { get; private set; }
+    public int yMin { get; private set; }
+    public int yMax { get; private set; }
     public List<AreaBlock> reservatedBlocks = new List<AreaBlock>();
     
 
-    public BasicPlayerModel(GameObject _self, Color _color):base(_self)
+    public BasicPlayerModel(GameObject _self, float _hueColor):base(_self, _hueColor)
     {
-        color = _color;
         xMin = Area.rows;
-        zMin = Area.cols;
+        yMin = Area.cols;
     }
 
     public void addBlock(AreaBlock block)
@@ -25,10 +24,10 @@ public class BasicPlayerModel : IPlayerModel
             xMax = block.X;
         else if (block.X < xMin)
             xMin = block.X;
-        if (block.Z > zMax)
-            zMax = block.Z;
-        if (block.Z < zMin)
-            zMin = block.Z;
+        if (block.Y > yMax)
+            yMax = block.Y;
+        if (block.Y < yMin)
+            yMin = block.Y;
         blocks.Add(block);
         block.setOwner(self);
         
@@ -67,16 +66,16 @@ public class BasicPlayerModel : IPlayerModel
     public override void addInitBlocks(int size)
     {
         for (int i = X; i < X + size; i++)
-            for (int j = Z; j < Z + size; j++)
+            for (int j = Y; j < Y + size; j++)
             {
                 addBlock(Area.blocks[i][j]);
             }
     }
 
-    public override void addBlocks(int x, int z, int size)
+    public override void addBlocks(int x, int y, int size)
     {
         for (int i = x; i < x + size; i++)
-            for (int j = z; j < z + size; j++)
+            for (int j = y; j < y + size; j++)
             {
                 addBlock(Area.blocks[i][j]);
             }
@@ -89,7 +88,7 @@ public class BasicPlayerModel : IPlayerModel
         foreach (var addedBlock in addedBlocks)
         {
             int i = addedBlock.X;
-            int j = addedBlock.Z;
+            int j = addedBlock.Y;
             List<AreaBlock> blocksToCheck = new List<AreaBlock>();
             if (!(i == 0 || i == Area.rows - 1))
                 blocksToCheck.Add(Area.blocks[i + 1][j]);
@@ -117,11 +116,11 @@ public class BasicPlayerModel : IPlayerModel
     {
         looked.Add(block);
         int i = block.X;
-        int j = block.Z;
+        int j = block.Y;
 
         if (i == 0 || i == Area.rows-1 || j == 0 || j == Area.cols-1)
             return false;
-        if (xMin > i || i > xMax || zMin > j || j > zMax)
+        if (xMin > i || i > xMax || yMin > j || j > yMax)
             return false;
 
         var b = Area.blocks[i + 1][j];
