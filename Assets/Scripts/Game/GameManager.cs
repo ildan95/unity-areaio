@@ -1,52 +1,64 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
 
     public GameObject player;
+
+    private PlayerController _playerController; 
+    private PlayerModel _playerModel;
+    public GameStatistic gameStatistic;
     public static List<float> hueColorsInGame = new List<float>();
+
+    private bool _updatedPlayerInfo = false;
+
+    void Awake()
+    {
+        Debug.Log("Game manager awake");
+        
+       
+        Debug.Log("Game manager awake end");
+    }
 
     void Start()
     {
-        var position = randomFreeSquare(2);
-        player = Instantiate(Resources.Load<GameObject>("Player2D"), position, Quaternion.identity);
+        Debug.Log("Game manager start start");
+        createPlayer();
+
+        Debug.Log("Game manager start end");
+
     }
 
     void Update() 
     {
-
-    }
-
-    public Vector3 randomFreeSquare(int side)
-    {
-        int X = Random.Range(0, Area.rows);
-        int Y = Random.Range(0, Area.cols);
-        while (!Area.isFreeSquare(X, Y, side))
+        if (!_playerModel.isAlive && !_updatedPlayerInfo)
         {
-            X = Random.Range(0, Area.rows);
-            Y = Random.Range(0, Area.cols);
+            _playerController.photonView.RPC("removeHueColor", PhotonTargets.OthersBuffered, _playerModel.hueColor);
+            gameStatistic.ShowStatistic(_playerModel);
+            _playerModel.UpdatePlayerInfo();
+            _updatedPlayerInfo = true;
         }
-        return new Vector3(X, Y, 0);
+    }
+       
+    public void createPlayer()
+    {
+        
+        player = PhotonNetwork.Instantiate("Player2D", new Vector3(-100,-100,-100), Quaternion.identity,0);
+        _playerController = player.GetComponent<PlayerController>();
+        _playerModel = _playerController.model;
+        GameObject.Find("Camera").GetComponent<CameraScript>().setTarget(player.transform);
+        Debug.Log("Player: " + player);
     }
 
-    public static float randomHueColor()
+    public void toLobby()
     {
-        float hue=0;
-        int colorsCount = hueColorsInGame.Count;
-        int count = 0;
-        while (count < colorsCount) {
-            count = 0;
-            hue = Random.Range(0, 1);
-            foreach (var hueColor in hueColorsInGame)
-            {
-                if (Mathf.Abs(hueColor - hue) > 0.05)
-                    count++;
-                else
-                    break;
-            }
-        }
-        return hue;
+        LocalData._lastRoomName = PhotonNetwork.room.Name;
+        PhotonNetwork.LeaveRoom();
+        Loading.Load(LoadingScene.Lobby);
     }
+
+    
 }

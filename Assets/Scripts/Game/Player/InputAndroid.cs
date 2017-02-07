@@ -25,7 +25,10 @@ public class InputAndroid : IInput{
                 beganPosition = Input.GetTouch(0).position;
             else if (Input.GetTouch(0).phase == TouchPhase.Ended)
             {
-                var deltaPos = Input.GetTouch(0).position - beganPosition;
+                var pos = Input.GetTouch(0).position;
+                if (Vector2.Distance(beganPosition, pos) < 20)
+                    return;
+                var deltaPos = pos - beganPosition;
                 if (Math.Abs(deltaPos.y) >= Math.Abs(deltaPos.x))
                 {
                     if (deltaPos.y >= 0)
