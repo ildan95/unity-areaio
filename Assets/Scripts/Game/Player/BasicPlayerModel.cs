@@ -25,9 +25,12 @@ public class PlayerModel
     public Direction direction = Direction.Up;
     public float hueColor;
     public Color color;
+    public Material material;
     public GameObject self;
     public int X;
     public int Y;
+
+ 
 
     public float Percent { get; protected set; }
     public int Kills { get; set; }
@@ -47,8 +50,11 @@ public class PlayerModel
     public void setHueColor(float _hueColor)
     {
         hueColor = _hueColor;
-        color = Color.HSVToRGB(hueColor, 1, 0.7f);
-        self.GetComponent<SpriteRenderer>().color = color;
+        color = Color.HSVToRGB(hueColor, 1, 1);
+        material = new Material(Shader.Find("Sprites/Default"));
+        material.color = color;
+        self.GetComponent<SpriteRenderer>().color = Color.HSVToRGB(hueColor, 1, 0.7f);
+
     }
 
     private void addBlocks(List<int> toAddBlocksId)
@@ -57,9 +63,9 @@ public class PlayerModel
         {
             UpdateBlockMinMax(blockId);
             blocksId.Add(blockId);
-            Area.blocks[blockId / Area.rows][blockId % Area.rows].setOwner(hueColor);
+            Area.blocks[blockId / Area.rows][blockId % Area.rows].setOwner(material);
         }  
-        self.GetComponent<PlayerController>().photonView.RPC("setBlocksOwnerRPC", PhotonTargets.OthersBuffered, AreaBlock.toStr(toAddBlocksId), hueColor);
+        self.GetComponent<PlayerController>().photonView.RPC("setBlocksOwnerRPC", PhotonTargets.Others, AreaBlock.toStr(toAddBlocksId), hueColor);
     }
 
     private void addBlocksAndClear(List<int> toAddBlock)
@@ -76,30 +82,21 @@ public class PlayerModel
         checkClosedArea(reservatedBlocks);
         reservatedBlocks.Clear();
         Percent = (float)blocksId.Count / Area.blocksCount * 100;
-        updateCameraSize();
     }
 
     public void reservateBlock(AreaBlock block)
     {
         reservatedBlocks.Add(block);
-        block.setPreOwner(hueColor);
-        self.GetComponent<PlayerController>().photonView.RPC("setBlockPreOwnerRPC", PhotonTargets.OthersBuffered, block.X, block.Y, hueColor);
+        block.PreOwnerH = hueColor;
+        self.GetComponent<PlayerController>().photonView.RPC("setBlockPreOwnerRPC", PhotonTargets.Others, block.X, block.Y, hueColor);
     }
 
     public void setFreeBlocks()
     {
         Debug.Log("set free blocks. Hue color: " + hueColor.ToString());
-
-        self.GetComponent<PlayerController>().photonView.RPC("setBlocksFreeRPC", PhotonTargets.OthersBuffered, AreaBlock.toStr(reservatedBlocks), hueColor);
-        self.GetComponent<PlayerController>().photonView.RPC("setBlocksFreeRPC", PhotonTargets.OthersBuffered, AreaBlock.toStr(blocksId), hueColor);
-
-        
+        material.color = Color.white;
         foreach (var block in reservatedBlocks)
-            block.setFree(hueColor);
-        //foreach (var blockId in blocksId)
-            //Area.blocks[blockId / Area.rows][blockId % Area.rows].setFree(hueColor);
-
-        
+            block.PreOwnerH = -1;
     }
 
     public void addInitBlocks(int size)
@@ -156,19 +153,19 @@ public class PlayerModel
             return false;
 
         var b = Area.blocks[i + 1][j];
-        if (!b.isOwn(hueColor) && !looked.Contains(b))
+        if (!b.isOwn(color) && !looked.Contains(b))
             if (!isAroundOwn(b, ref looked))
                 return false;
         b = Area.blocks[i - 1][j];
-        if (!b.isOwn(hueColor) && !looked.Contains(b))
+        if (!b.isOwn(color) && !looked.Contains(b))
             if (!isAroundOwn(b, ref looked))
                 return false;
         b = Area.blocks[i][j+1];
-        if (!b.isOwn(hueColor) && !looked.Contains(b))
+        if (!b.isOwn(color) && !looked.Contains(b))
             if (!isAroundOwn(b, ref looked))
                 return false;
         b = Area.blocks[i][j-1];
-        if (!b.isOwn(hueColor) && !looked.Contains(b))
+        if (!b.isOwn(color) && !looked.Contains(b))
             if (!isAroundOwn(b, ref looked))
                 return false;
         return true;
@@ -200,17 +197,5 @@ public class PlayerModel
             yMin = blockY;
     }
 
-    private void updateCameraSize()
-    {
-        int size = 5;
-        if (blocksId.Count > 500)
-            size = 15;
-        else if (blocksId.Count > 100)
-            size = 12;
-        else if (blocksId.Count > 50)
-            size = 10;
-        else if (blocksId.Count > 10)
-            size = 7;
-        GameObject.Find("Camera").GetComponent<Camera>().orthographicSize = size;
-    }
+    
 }

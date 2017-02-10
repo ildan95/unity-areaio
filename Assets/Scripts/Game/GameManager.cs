@@ -49,8 +49,10 @@ public class GameManager : MonoBehaviour
         player = PhotonNetwork.Instantiate("Player2D", new Vector3(-100,-100,-100), Quaternion.identity,0);
         _playerController = player.GetComponent<PlayerController>();
         _playerModel = _playerController.model;
-        GameObject.Find("Camera").GetComponent<CameraScript>().setTarget(player.transform);
-        Debug.Log("Player: " + player);
+        var camera = GameObject.Find("Camera").GetComponent<CameraScript>();
+        camera.setTarget(player.transform);
+        camera.dampTime = _playerController.moveCooldown;
+        Debug.Log("Player: " + _playerController.photonView.viewID);
     }
 
     public void toLobby()

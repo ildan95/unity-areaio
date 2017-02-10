@@ -12,6 +12,8 @@ public class Area : Photon.PunBehaviour {
 
     public AreaBlock blockPrefab;
 	void Awake () {
+        transform.localScale = new Vector3(rows, cols);
+        var mat = new Material(Shader.Find("Sprites/Default")); 
         blocks = new List<List<AreaBlock>>();
         GameObject bl = new GameObject("blocks");
         bl.transform.SetParent(gameObject.transform);
@@ -25,7 +27,7 @@ public class Area : Photon.PunBehaviour {
                 AreaBlock block = Instantiate(Resources.Load<AreaBlock>("Block2D"), new Vector3(i, j, 1), Quaternion.identity).GetComponent<AreaBlock>();
                 block.name = "block" + j.ToString();
                 block.transform.SetParent(row.transform);
-                block.tag = "AreaBlock";
+                block.GetComponent<SpriteRenderer>().sharedMaterial = mat;
                 blocks[i].Add(block);
             }
         }

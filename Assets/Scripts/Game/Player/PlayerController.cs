@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine.UI;
@@ -11,13 +10,16 @@ public class PlayerController : Photon.PunBehaviour {
     public PlayerModel model;
     public PlayerView view;
 
+    
+
     public float moveCooldown = 0.1f;
     private float moveCooldownTime = 0;
+
     public void Awake()
     {
         Debug.Log("Player controller awake start");
-
         model = new PlayerModel(gameObject);
+        view.dampTime = moveCooldown;
         Debug.Log("Choosing input");
 #if UNITY_EDITOR
         Debug.Log("Editor input");
@@ -42,6 +44,9 @@ public class PlayerController : Photon.PunBehaviour {
         model.X = (int)Math.Round(transform.position.x, 0);
         model.Y = (int)Math.Round(transform.position.y, 0);
         model.addInitBlocks(2);
+        Color c = Color.HSVToRGB(model.hueColor, 1, 1);
+        c.a = 0.5f;
+        view.lineRenderer.startColor = view.lineRenderer.endColor = c;
         model.isReady = true;
     }
 
@@ -60,8 +65,8 @@ public class PlayerController : Photon.PunBehaviour {
         model.direction = checkDirection();
         if (moveCooldownTime >= moveCooldown)
         {
-            move();
             updateBlock();
+            move();
             view.UpdatePos();
             moveCooldownTime = 0;
             GameObject.Find("Canvas/PercentStatistic/PlayerPercentStatistic/Percent").GetComponent<Text>().text = string.Format("{0} %", Math.Round(model.Percent,2));
@@ -70,7 +75,7 @@ public class PlayerController : Photon.PunBehaviour {
             moveCooldownTime += Time.deltaTime;
     }
 
-    private void updateBlock() {
+    public void updateBlock() {
         if (Area.isOut(model.X, model.Y))
             return;
         AreaBlock block = Area.blocks[model.X][model.Y];
@@ -89,10 +94,14 @@ public class PlayerController : Photon.PunBehaviour {
         }
         else
         {
-            if (block.OwnerH != model.hueColor)
+            if (!block.isOwn(model.color))
                 model.reservateBlock(block);
             else
+            {
                 model.addReservedToOwn();
+                view.clearLineRenderer();
+                view.updateCameraSize();
+            }
         }
     }
 
@@ -134,7 +143,6 @@ public class PlayerController : Photon.PunBehaviour {
             died();
         }
         
-        //photonView.RPC("updatePos", PhotonTargets.Others, model.X, model.Y);
     }
 
     private void stop()
@@ -148,14 +156,8 @@ public class PlayerController : Photon.PunBehaviour {
         Debug.Log(model.hueColor.ToString() + " is dead");
         model.isAlive = false;
         stop();
-        if (photonView.isMine)
-        {
-            StartCoroutine(FreeBlocksCoroutine(model.blocksId, model.hueColor));
-            model.setFreeBlocks();
-        }
-
-        model.X = -100;
-        model.Y = -100;
+        view.clearLineRenderer();
+        model.setFreeBlocks();
     }
 
     private void kill(float playerH)
@@ -205,28 +207,27 @@ public class PlayerController : Photon.PunBehaviour {
     [PunRPC]
     private void setBlocksOwnerRPC(string Ids, float playerH)
     {
+        view.clearLineRenderer();
         List<int> ids = AreaBlock.toListInt(Ids);
         foreach (var Id in ids)
-        {
-            Area.blocks[Id / Area.rows][Id % Area.rows].setOwner(playerH);
-        }
+            Area.blocks[Id / Area.rows][Id % Area.rows].setOwner(model.material);
     }
 
     [PunRPC]
     private void setBlockPreOwnerRPC(int X, int Y, float playerH)
     {
-        Area.blocks[X][Y].setPreOwner(playerH);
+        Area.blocks[X][Y].PreOwnerH = playerH;
+        view.addPoint(new Vector3(X,Y));
     }
 
     [PunRPC]
-    private void setBlocksFreeRPC(string Ids, float playerH)
+    private void setBlocksFreeRPC(string ReservatedIds, float playerH)
     {
-        List<int> ids = AreaBlock.toListInt(Ids);
-        //foreach (var Id in ids)
-        //{
-        //    Area.blocks[Id / Area.rows][Id % Area.rows].setFree(playerH);
-        //}
-        StartCoroutine(FreeBlocksCoroutine(ids, playerH));
+        model.material.color = Color.white;
+        List<int> ids = AreaBlock.toListInt(ReservatedIds);
+        //StartCoroutine(FreeBlocksCoroutine(ids, playerH));
+        foreach (var id in ids)
+            Area.blocks[id / Area.rows][id % Area.rows].PreOwnerH = -1;
     }
 
     [PunRPC]
@@ -245,23 +246,40 @@ public class PlayerController : Photon.PunBehaviour {
     public void setHueColorRPC(float hueColor)
     {
         model.setHueColor(hueColor);
+        view.lineRenderer.startColor = view.lineRenderer.endColor = Color.HSVToRGB(model.hueColor, 0.4f, 1);
     }
 
-    //[PunRPC]
-    //public void updatePos(int X, int Y)
+
+    //IEnumerator FreeBlocksCoroutine(List<int> ids, float playerH)
     //{
-    //    model.X = X;
-    //    model.Y = Y;
-    //    view.UpdatePos();
+    //    foreach (var Id in ids)
+    //    {
+    //        Area.blocks[Id / Area.rows][Id % Area.rows].setFree(playerH);
+    //        yield return null;
+    //    }
     //}
 
-
-    IEnumerator FreeBlocksCoroutine(List<int> ids, float playerH)
+    [PunRPC]
+    public void initPlayerInfo(string blocksId, string reservatedBlocksId) 
     {
-        foreach (var Id in ids)
+        foreach (var block in AreaBlock.toListBlock(blocksId))
+            block.setOwner(model.material);
+        view.clearLineRenderer();
+        foreach (var block in AreaBlock.toListBlock(reservatedBlocksId))
         {
-            Area.blocks[Id / Area.rows][Id % Area.rows].setFree(playerH);
-            yield return null;
+            block.PreOwnerH = model.hueColor;
+            view.addPoint(block.transform.position);
         }
     }
+    
+
+    public override void OnPhotonInstantiate(PhotonMessageInfo info)
+    {
+        if (!PhotonNetwork.isMasterClient || photonView.isMine)
+            return;
+        foreach (var player in FindObjectsOfType<PlayerController>())
+            player.photonView.RPC("initPlayerInfo", info.sender, AreaBlock.toStr(player.model.blocksId), AreaBlock.toStr(player.model.reservatedBlocks));
+    }
+
+
 }

@@ -4,8 +4,9 @@ using System.Collections.Generic;
 
 public class AreaBlock : MonoBehaviour {
 
-    public float OwnerH { get; private set; }
-    public float PreOwnerH { get; private set; }
+    public Material sharedMaterial;
+
+    public float PreOwnerH { get; set; }
     public int X { get; private set; }
     public int Y { get; private set; }
     public int Id { get; private set; }
@@ -14,60 +15,30 @@ public class AreaBlock : MonoBehaviour {
     {
         get
         {
-            return OwnerH == -1 && PreOwnerH == -1;
+            return sharedMaterial.color == Color.white && PreOwnerH == -1;
         }
         private set { }
     }
 
-    public bool isOwn(float playerH)
+    public bool isOwn(Color playerColor)
     {
-        return OwnerH == playerH;
+        return sharedMaterial.color==playerColor;
     }
 
     void Awake () {
-        OwnerH = PreOwnerH = -1;
+        PreOwnerH = -1;
+        sharedMaterial = GetComponent<SpriteRenderer>().sharedMaterial;
         X = (int)System.Math.Round(transform.position.x, 0);
         Y = (int)System.Math.Round(transform.position.y, 0);
         Id = X * Area.rows + Y;
     }
-	
-    public void setOwner(float playerH)
+
+
+    public void setOwner(Material mat)
     {
-        OwnerH = playerH;
-        gameObject.GetComponent<SpriteRenderer>().color = Color.HSVToRGB(playerH, 1, 1);
+        //gameObject.GetComponent<SpriteRenderer>().sharedMaterial = mat;
+        gameObject.GetComponent<SpriteRenderer>().sharedMaterial = sharedMaterial = mat;
         PreOwnerH = -1;
-    }
-
-    public void setPreOwner(float playerH)
-    {
-        PreOwnerH = playerH;
-        gameObject.GetComponent<SpriteRenderer>().color = Color.HSVToRGB(playerH,0.5f,1);
-    }
-
-    private void setFree()
-    {
-        PreOwnerH = OwnerH = -1;
-        gameObject.GetComponent<SpriteRenderer>().color = Color.white;
-    }
-
-    public void setFree(float playerH)
-    {
-        Debug.Log("set free " + playerH.ToString());
-        if (PreOwnerH == playerH)
-        {
-            if (OwnerH == -1)
-                setFree();
-            else
-                setOwner(OwnerH);
-
-        }
-        else if (OwnerH == playerH)
-        {
-            if (PreOwnerH == -1)
-                setFree();
-            else
-                setPreOwner(OwnerH);
-        }
     }
 
     public static string toStr(List<int> blocksId)
@@ -118,4 +89,18 @@ public class AreaBlock : MonoBehaviour {
         return blocksId;
     }
 
+    public static List<AreaBlock> toListBlock(string blocksIdStr)
+    {
+        List<AreaBlock> blocksId = new List<AreaBlock>();
+
+        if (blocksIdStr == "")
+            return blocksId;
+
+        foreach (var blockIdStr in blocksIdStr.Split(' '))
+        {
+            int id = System.Convert.ToInt32(blockIdStr);
+            blocksId.Add(Area.blocks[id / Area.rows][id % Area.rows]);
+        }
+        return blocksId;
+    }
 }
