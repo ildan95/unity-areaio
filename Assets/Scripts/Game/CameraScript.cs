@@ -7,12 +7,21 @@ public class CameraScript : MonoBehaviour
     public float dampTime = 0.15f;
     private Vector3 velocity = Vector3.zero;
     public Transform target;
-	
-	// Update is called once per frame
 
-    public void setTarget(Transform _target)
+    void OnEnable()
     {
-        target = _target;
+        GameManager.PlayerCreatedEvent += setTarget;
+        dampTime = GameManager.moveCooldown;
+    }
+
+    void OnDisable()
+    {
+        GameManager.PlayerCreatedEvent -= setTarget;
+    }
+
+    public void setTarget(PlayerController _targetController)
+    {
+        target = _targetController.transform;
     }
 
 	void Update ()

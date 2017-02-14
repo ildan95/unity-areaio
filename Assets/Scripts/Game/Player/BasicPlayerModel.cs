@@ -6,11 +6,12 @@ using System;
 public enum Direction
 {
     Up,
-    Down,
     Right,
+    Down,
     Left
-
 }
+
+
 
 public class PlayerModel
 {
@@ -27,6 +28,7 @@ public class PlayerModel
     public Color color;
     public Material material;
     public GameObject self;
+    public PlayerController controller;
     public int X;
     public int Y;
 
@@ -45,6 +47,17 @@ public class PlayerModel
         self = _self;
         xMin = Area.rows;
         yMin = Area.cols;
+        controller = self.GetComponent<PlayerController>();
+
+        controller.BlocksOwnedEvent += addReservedToOwn;
+        controller.BlockPreOwnedEvent += reservateBlock;
+        controller.DeathEvent += UpdatePlayerInfo;
+    }
+
+    ~PlayerModel(){
+        controller.BlocksOwnedEvent -= addReservedToOwn;
+        controller.BlockPreOwnedEvent -= reservateBlock;
+        controller.DeathEvent -= UpdatePlayerInfo;
     }
 
     public void setHueColor(float _hueColor)
@@ -65,7 +78,7 @@ public class PlayerModel
             blocksId.Add(blockId);
             Area.blocks[blockId / Area.rows][blockId % Area.rows].setOwner(material);
         }  
-        self.GetComponent<PlayerController>().photonView.RPC("setBlocksOwnerRPC", PhotonTargets.Others, AreaBlock.toStr(toAddBlocksId), hueColor);
+        controller.photonView.RPC("setBlocksOwnerRPC", PhotonTargets.Others, AreaBlock.toStr(toAddBlocksId), hueColor);
     }
 
     private void addBlocksAndClear(List<int> toAddBlock)
@@ -110,6 +123,13 @@ public class PlayerModel
         addBlocks(blocksId);
     }
 
+    //private bool isBlockNotMy(AreaBlock block)
+    //{
+    //    return !block.isOwn(color) && block.PreOwnerH != hueColor;
+    //}
+
+
+
     private void checkClosedArea(List<AreaBlock> addedBlocks)
     {
         if (addedBlocks.Count == 0)
@@ -129,7 +149,7 @@ public class PlayerModel
                 blocksToCheck.Add(Area.blocks[i][j - 1]);
             foreach (var block in blocksToCheck)
             {
-                if (!block.isFree)
+                if (block.isOwn(color) || block.PreOwnerH == hueColor)
                     continue;
                 List<AreaBlock> looked = new List<AreaBlock>();
                 if (isAroundOwn(block, ref looked))

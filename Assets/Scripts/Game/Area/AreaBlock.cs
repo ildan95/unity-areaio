@@ -2,11 +2,25 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class AreaBlock : MonoBehaviour {
+//public partial class AreaBlock
+//{
+//    public delegate void OwnedHandler(int id);
+//    public static event OwnedHandler OwnedEvent;
+
+//    public delegate void PreOwnedHandler(int id);
+//    public static event PreOwnedHandler PreOwnedEvent;
+
+//    public delegate void DeathHandler(float hueColor);
+//    public delegate void KillHandler(float killerHueColor, float targetHueColor);
+//    public event DeathHandler DeathEvent;
+//    public event KillHandler KillEvent;
+//}
+
+public partial class AreaBlock : MonoBehaviour {
 
     public Material sharedMaterial;
 
-    public float PreOwnerH { get; set; }
+    public float PreOwnerH;
     public int X { get; private set; }
     public int Y { get; private set; }
     public int Id { get; private set; }
@@ -15,7 +29,16 @@ public class AreaBlock : MonoBehaviour {
     {
         get
         {
-            return sharedMaterial.color == Color.white && PreOwnerH == -1;
+            return isWhite && PreOwnerH == -1;
+        }
+        private set { }
+    }
+
+    public bool isWhite
+    {
+        get
+        {
+            return sharedMaterial.color == Color.white;
         }
         private set { }
     }
@@ -36,7 +59,6 @@ public class AreaBlock : MonoBehaviour {
 
     public void setOwner(Material mat)
     {
-        //gameObject.GetComponent<SpriteRenderer>().sharedMaterial = mat;
         gameObject.GetComponent<SpriteRenderer>().sharedMaterial = sharedMaterial = mat;
         PreOwnerH = -1;
     }

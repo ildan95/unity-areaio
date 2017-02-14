@@ -92,6 +92,7 @@ public class Loading : MonoBehaviour
     {
         if (_nextScene == LoadingScene.Game)
         {
+            GameObject.Find("Status").SetActive(false);
             PhotonNetwork.LoadLevel("Game");
         }
         else if (_nextScene == LoadingScene.Lobby)

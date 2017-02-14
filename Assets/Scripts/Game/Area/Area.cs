@@ -12,7 +12,7 @@ public class Area : Photon.PunBehaviour {
 
     public AreaBlock blockPrefab;
 	void Awake () {
-        transform.localScale = new Vector3(rows, cols);
+        transform.localScale = new Vector2(rows, cols);
         var mat = new Material(Shader.Find("Sprites/Default")); 
         blocks = new List<List<AreaBlock>>();
         GameObject bl = new GameObject("blocks");
@@ -49,7 +49,12 @@ public class Area : Photon.PunBehaviour {
         return x > rows-1 || x < 0 || y > cols-1 || y < 0;
     }
 
-    public static Vector3 randomFreeSquare(int side)
+    public static bool isOut(Vector2 pos)
+    {
+        return pos.x > rows - 1 || pos.x < 0 || pos.y > cols - 1 || pos.y < 0;
+    }
+
+    public static Vector2 randomFreeSquare(int side)
     {
         int X = Random.Range(0, rows);
         int Y = Random.Range(0, cols);
@@ -61,24 +66,12 @@ public class Area : Photon.PunBehaviour {
                 PhotonNetwork.LeaveRoom();
                 LocalData._lastRoomName = "";
                 PhotonNetwork.LoadLevel("Lobby");
-                return new Vector3(0,0,0);
+                return new Vector2(0,0);
             }
             count++;
-            //TODO if no free space
             X = Random.Range(0, rows);
             Y = Random.Range(0, cols);
         }
-        return new Vector3(X, Y, 0);
+        return new Vector2(X, Y);
     }
-
-    
-
-    
-
-    /*public static void setFree(List<AreaBlock> blocks, GameObject player)
-    {
-        foreach (AreaBlock block in blocks)
-            //block.setFree(player);
-            player.GetComponent<PlayerController>().photonView.RPC("setBlockFreeRPC", PhotonTargets.MasterClient, block.X, block.Y, player.GetComponent<PlayerController>().photonView.viewID);
-    }*/
 }

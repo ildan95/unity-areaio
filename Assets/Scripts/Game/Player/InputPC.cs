@@ -2,6 +2,9 @@
 
 public class InputPC:IInput {
 
+
+
+
     public bool isUpKey()
     {
         return Input.GetKeyDown(KeyCode.W);
@@ -19,6 +22,8 @@ public class InputPC:IInput {
         return Input.GetKeyDown(KeyCode.A);
     }
 
-    public void Update() { }
+    public void Update() {
+
+    }
 
 }

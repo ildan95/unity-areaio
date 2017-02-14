@@ -3,56 +3,40 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+public partial class GameManager
 {
+    public delegate void PlayerCreatedHandler(PlayerController controller);
+    public static event PlayerCreatedHandler PlayerCreatedEvent;
 
-    public GameObject player;
+    public delegate void NextMoveHandler();
+    public static event NextMoveHandler NextMoveEvent;
+}
 
-    private PlayerController _playerController; 
-    private PlayerModel _playerModel;
-    public GameStatistic gameStatistic;
+public partial class GameManager : MonoBehaviour
+{
+    public PlayerController controller;
     public static List<float> hueColorsInGame = new List<float>();
+    public static float moveCooldown = 0.2f;
 
-    private bool _updatedPlayerInfo = false;
 
     void Awake()
     {
-        Debug.Log("Game manager awake");
-        
-       
-        Debug.Log("Game manager awake end");
+
     }
 
     void Start()
     {
-        Debug.Log("Game manager start start");
         createPlayer();
-
-        Debug.Log("Game manager start end");
-
     }
-
-    void Update() 
-    {
-        if (!_playerModel.isAlive && !_updatedPlayerInfo)
-        {
-            _playerController.photonView.RPC("removeHueColor", PhotonTargets.OthersBuffered, _playerModel.hueColor);
-            gameStatistic.ShowStatistic(_playerModel);
-            _playerModel.UpdatePlayerInfo();
-            _updatedPlayerInfo = true;
-        }
-    }
-       
+     
     public void createPlayer()
     {
-        
-        player = PhotonNetwork.Instantiate("Player2D", new Vector3(-100,-100,-100), Quaternion.identity,0);
-        _playerController = player.GetComponent<PlayerController>();
-        _playerModel = _playerController.model;
-        var camera = GameObject.Find("Camera").GetComponent<CameraScript>();
-        camera.setTarget(player.transform);
-        camera.dampTime = _playerController.moveCooldown;
-        Debug.Log("Player: " + _playerController.photonView.viewID);
+        var player = PhotonNetwork.Instantiate("Player2D", new Vector2(-100,-100), Quaternion.identity,0);
+        controller = player.GetComponent<PlayerController>();
+        if (PlayerCreatedEvent != null)
+            PlayerCreatedEvent(controller);
+        controller.ReadyEvent += StartGame;
+        controller.DeathEvent += EndGame;
     }
 
     public void toLobby()
@@ -62,5 +46,23 @@ public class GameManager : MonoBehaviour
         Loading.Load(LoadingScene.Lobby);
     }
 
-    
+    void StartGame()
+    {
+        StartCoroutine(nextMove());
+        controller.ReadyEvent -= StartGame;
+    }
+
+    void EndGame()
+    {
+        StopAllCoroutines();
+        controller.DeathEvent -= EndGame;
+    }
+
+    IEnumerator nextMove()
+    {
+        if (NextMoveEvent != null)
+            NextMoveEvent();
+        yield return new WaitForSeconds(moveCooldown);
+        StartCoroutine(nextMove());
+    }
 }
