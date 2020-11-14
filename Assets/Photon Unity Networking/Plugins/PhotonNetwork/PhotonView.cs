@@ -51,7 +51,7 @@ public enum OwnershipOption
 /// PUN's NetworkView replacement class for networking. Use it like a NetworkView.
 /// </summary>
 /// \ingroup publicApi
-[AddComponentMenu("Photon Networking/Photon View &v")]
+[AddComponentMenu("Photon Networking/Photon View")]
 public class PhotonView : Photon.MonoBehaviour
 {
     #if UNITY_EDITOR
@@ -64,7 +64,7 @@ public class PhotonView : Photon.MonoBehaviour
 
     public int ownerId;
 
-    public int group = 0;
+    public byte group = 0;
 
     protected internal bool mixedModeIsReliable = false;
 
@@ -332,7 +332,7 @@ public class PhotonView : Photon.MonoBehaviour
             bool wasInList = PhotonNetwork.networkingPeer.LocalCleanPhotonView(this);
             bool loading = false;
 
-            #if !UNITY_5 || UNITY_5_0 || UNITY_5_1
+			#if (!UNITY_5 || UNITY_5_0 || UNITY_5_1) && !UNITY_5_3_OR_NEWER
             loading = Application.isLoadingLevel;
             #endif
 

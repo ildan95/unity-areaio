@@ -1,5 +1,5 @@
-﻿using PlayFab;
-using PlayFab.ClientModels;
+﻿// using PlayFab;
+// using PlayFab.ClientModels;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,63 +42,67 @@ public static class LocalData {
 
     public static void LoadMoney()
     {
-        SyncCount++;
-        AddUserVirtualCurrencyRequest reqCur = new AddUserVirtualCurrencyRequest()
-        {
-            VirtualCurrency = "GD",
-            Amount = 0,
-        };
-        PlayFabClientAPI.AddUserVirtualCurrency(reqCur, (ModifyUserVirtualCurrencyResult res) =>
-        {
-            if (res != null)
-                Gold = res.Balance;
-            SyncCount--;
-        },
-        (PlayFabError err) => Debug.Log(err.ErrorMessage));
+        Gold = 0;
+        // SyncCount++;
+        // AddUserVirtualCurrencyRequest reqCur = new AddUserVirtualCurrencyRequest()
+        // {
+        //     VirtualCurrency = "GD",
+        //     Amount = 0,
+        // };
+        // PlayFabClientAPI.AddUserVirtualCurrency(reqCur, (ModifyUserVirtualCurrencyResult res) =>
+        // {
+        //     if (res != null)
+        //         Gold = res.Balance;
+        //     SyncCount--;
+        // },
+        // (PlayFabError err) => Debug.Log(err.ErrorMessage));
     }
     public static void LoadKillsLeaderboard()
     {
-        SyncCount++;
-        GetLeaderboardAroundPlayerRequest req = new GetLeaderboardAroundPlayerRequest()
-        {
-            StatisticName = "Most dangerous",
-        };
-        PlayFabClientAPI.GetLeaderboardAroundPlayer(req, (GetLeaderboardAroundPlayerResult res) =>
-        {
-            if (res.Leaderboard != null)
-                foreach (var person in res.Leaderboard)
-                    if (person.PlayFabId == PlayFabId)
-                    {
-                        MostKills = person.StatValue;
-                        break;
-                    }
-            SyncCount--;
-        },
-        (PlayFabError err) => Debug.Log(err.ErrorMessage));
+        MostKills = 0;
+        // SyncCount++;
+        // GetLeaderboardAroundPlayerRequest req = new GetLeaderboardAroundPlayerRequest()
+        // {
+        //     StatisticName = "Most dangerous",
+        // };
+        // PlayFabClientAPI.GetLeaderboardAroundPlayer(req, (GetLeaderboardAroundPlayerResult res) =>
+        // {
+        //     if (res.Leaderboard != null)
+        //         foreach (var person in res.Leaderboard)
+        //             if (person.PlayFabId == PlayFabId)
+        //             {
+        //                 MostKills = person.StatValue;
+        //                 break;
+        //             }
+        //     SyncCount--;
+        // },
+        // (PlayFabError err) => Debug.Log(err.ErrorMessage));
     }
 
     public static void SaveMoney(int aValue)
     {
-        SyncCount++;
-        AddUserVirtualCurrencyRequest reqCur = new AddUserVirtualCurrencyRequest()
-        {
-            VirtualCurrency = "GD",
-            Amount = aValue,
-        };
-        PlayFabClientAPI.AddUserVirtualCurrency(reqCur, (ModifyUserVirtualCurrencyResult res) =>
-        {
-            if (res != null)
-                Gold = res.Balance;
-            SyncCount--;
-        },
-        (PlayFabError err) => Debug.Log(err.ErrorMessage));
+        Gold += aValue;
+        // SyncCount++;
+        // AddUserVirtualCurrencyRequest reqCur = new AddUserVirtualCurrencyRequest()
+        // {
+        //     VirtualCurrency = "GD",
+        //     Amount = aValue,
+        // };
+        // PlayFabClientAPI.AddUserVirtualCurrency(reqCur, (ModifyUserVirtualCurrencyResult res) =>
+        // {
+        //     if (res != null)
+        //         Gold = res.Balance;
+        //     SyncCount--;
+        // },
+        // (PlayFabError err) => Debug.Log(err.ErrorMessage));
     }
     public static void SaveKills(int kills)
     {
-        UpdatePlayerStatisticsRequest req = new UpdatePlayerStatisticsRequest()
-        {
-            Statistics = new List<StatisticUpdate> { new StatisticUpdate() { StatisticName = "Most dangerous", Value =kills  } }
-        };
-        PlayFabClientAPI.UpdatePlayerStatistics(req, (UpdatePlayerStatisticsResult r) => { MostKills = kills; }, (PlayFabError err) => { Debug.Log(err.ErrorMessage); });
+        MostKills += kills;   
+        // UpdatePlayerStatisticsRequest req = new UpdatePlayerStatisticsRequest()
+        // {
+        //     Statistics = new List<StatisticUpdate> { new StatisticUpdate() { StatisticName = "Most dangerous", Value =kills  } }
+        // };
+        // PlayFabClientAPI.UpdatePlayerStatistics(req, (UpdatePlayerStatisticsResult r) => { MostKills = kills; }, (PlayFabError err) => { Debug.Log(err.ErrorMessage); });
     }
 }

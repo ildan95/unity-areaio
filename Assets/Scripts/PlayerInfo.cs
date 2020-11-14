@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
-using PlayFab.ClientModels;
-using PlayFab;
+// using PlayFab.ClientModels;
+// using PlayFab;
 using System.Collections.Generic;
 
 public static class PlayerInfo {
@@ -34,7 +34,7 @@ public static class PlayerInfo {
     private static Updatable<int> score = new Updatable<int>(-1);
     private static Updatable<int> money = new Updatable<int>(-1);
     private static Updatable<int> rating = new Updatable<int>(-1);
-    private static Updatable<List<ItemInstance>> inventory = new Updatable<List<ItemInstance>>(new List<ItemInstance>());
+    private static Updatable<List<int>> inventory = new Updatable<List<int>>(new List<int>());
     private static Updatable<Dictionary<string, string>> titleUserData = new Updatable<Dictionary<string, string>>(new Dictionary<string, string>());
 
     public static int Score { get { return score.Value; } set { score.Value = value; } }
@@ -78,7 +78,7 @@ public static class PlayerInfo {
         private set { }
     }
 
-    public static List<ItemInstance> Inventory { get { return inventory.Value; } private set { inventory.Value = value; } }
+    public static List<int> Inventory { get { return inventory.Value; } private set { inventory.Value = value; } }
     public static bool IsInventoryChanged
     {
         get
@@ -92,7 +92,7 @@ public static class PlayerInfo {
         }
         private set { }
     }
-    public static void addItemToInventory(ItemInstance item)
+    public static void addItemToInventory(int item)
     {
         inventory.Value.Add(item);
     }
@@ -114,74 +114,83 @@ public static class PlayerInfo {
 
     public static void UpdateScore()
     {
-        score.Updating = true;
-        rating.Updating = true;
-        GetLeaderboardAroundPlayerRequest req = new GetLeaderboardAroundPlayerRequest()
-        {
-            StatisticName = "Score",
-        };
-        PlayFabClientAPI.GetLeaderboardAroundPlayer(req, (GetLeaderboardAroundPlayerResult res) =>
-        {
-            if (res.Leaderboard != null)
-                foreach(var person in res.Leaderboard)
-                    if (person.PlayFabId == PlayFabId)
-                    {
-                        Score = person.StatValue;
-                        Rating = person.Position + 1;
-                        score.Updating = false;
-                        rating.Updating = false;
-                        return;
-                    }
-        },
-        (PlayFabError err) => Debug.Log(err.ErrorMessage));
+        Score = 0;
+        Rating = 1;
+
+        // score.Updating = true;
+        // rating.Updating = true;
+        // GetLeaderboardAroundPlayerRequest req = new GetLeaderboardAroundPlayerRequest()
+        // {
+        //     StatisticName = "Score",
+        // };
+        // PlayFabClientAPI.GetLeaderboardAroundPlayer(req, (GetLeaderboardAroundPlayerResult res) =>
+        // {
+        //     if (res.Leaderboard != null)
+        //         foreach(var person in res.Leaderboard)
+        //             if (person.PlayFabId == PlayFabId)
+        //             {
+        //                 Score = person.StatValue;
+        //                 Rating = person.Position + 1;
+        //                 score.Updating = false;
+        //                 rating.Updating = false;
+        //                 return;
+        //             }
+        // },
+        // (PlayFabError err) => Debug.Log(err.ErrorMessage));
     }
     public static void UpdateMoney()
     {
-        money.Updating = true;
-        AddUserVirtualCurrencyRequest reqCur = new AddUserVirtualCurrencyRequest()
-        {
-            VirtualCurrency = "GO",
-            Amount = 0,
-        };
-        PlayFabClientAPI.AddUserVirtualCurrency(reqCur, (ModifyUserVirtualCurrencyResult res) =>
-        {
-            if (res != null)
-                Money = res.Balance;
-            money.Updating = false;
-        },
-        (PlayFabError err) => Debug.Log(err.ErrorMessage));
+        Money = 100;
+        // money.Updating = true;
+        // AddUserVirtualCurrencyRequest reqCur = new AddUserVirtualCurrencyRequest()
+        // {
+        //     VirtualCurrency = "GO",
+        //     Amount = 0,
+        // };
+        // PlayFabClientAPI.AddUserVirtualCurrency(reqCur, (ModifyUserVirtualCurrencyResult res) =>
+        // {
+        //     if (res != null)
+        //         Money = res.Balance;
+        //     money.Updating = false;
+        // },
+        // (PlayFabError err) => Debug.Log(err.ErrorMessage));
 
     }
     public static void UpdateInventory()
     {
-        inventory.Updating = true;
-        GetUserInventoryRequest reqCur = new GetUserInventoryRequest() { };
-        PlayFabClientAPI.GetUserInventory(reqCur, (GetUserInventoryResult res) =>
-        {
-            if (res != null)
-            {
-                Inventory = res.Inventory;
-                Money = res.VirtualCurrency["GO"];
-            }
-            inventory.Updating = false;
-        },
-        (PlayFabError err) => Debug.Log(err.ErrorMessage));
+        Inventory = new List<int>();
+        Money = 100;
+        
+        // inventory.Updating = true;
+        // GetUserInventoryRequest reqCur = new GetUserInventoryRequest() { };
+        // PlayFabClientAPI.GetUserInventory(reqCur, (GetUserInventoryResult res) =>
+        // {
+        //     if (res != null)
+        //     {
+        //         Inventory = res.Inventory;
+        //         Money = res.VirtualCurrency["GO"];
+        //     }
+        //     inventory.Updating = false;
+        // },
+        // (PlayFabError err) => Debug.Log(err.ErrorMessage));
     }
     public static void UpdateUserData()
     {
-        titleUserData.Updating = true;
-        GetUserDataRequest reqCur = new GetUserDataRequest() { };
-        PlayFabClientAPI.GetUserData(reqCur, (GetUserDataResult res) =>
-        {
-            if (res != null)
-            {
-                Dictionary<string, string> newData = new Dictionary<string, string>();
-                foreach (var data in res.Data)
-                    newData.Add(data.Key, data.Value.Value);
-                TitleUserData = newData;
-            }
-            titleUserData.Updating = false;
-        },
-        (PlayFabError err) => Debug.Log(err.ErrorMessage));
+        TitleUserData = new Dictionary<string, string>();
+
+        // titleUserData.Updating = true;
+        // GetUserDataRequest reqCur = new GetUserDataRequest() { };
+        // PlayFabClientAPI.GetUserData(reqCur, (GetUserDataResult res) =>
+        // {
+        //     if (res != null)
+        //     {
+        //         Dictionary<string, string> newData = new Dictionary<string, string>();
+        //         foreach (var data in res.Data)
+        //             newData.Add(data.Key, data.Value.Value);
+        //         TitleUserData = newData;
+        //     }
+        //     titleUserData.Updating = false;
+        // },
+        // (PlayFabError err) => Debug.Log(err.ErrorMessage));
     }
 }

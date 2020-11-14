@@ -2,8 +2,8 @@
 using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using PlayFab.ClientModels;
-using PlayFab;
+// using PlayFab.ClientModels;
+// using PlayFab;
 
 public enum LoadingScene
 {
@@ -55,7 +55,8 @@ public class Loading : MonoBehaviour
             {
                 statusText.text = "Заходим в аккаунт ...";
                 LogIn();
-                _loging = -2;
+                // _loging = -2;
+                _loging = 1;
             }
             else if (_loging == 0)
             {
@@ -83,7 +84,7 @@ public class Loading : MonoBehaviour
                     
                 }
             }
-            if (progressValue == 1)
+            if (progressValue >= 0.7f)
                 PhotonNetwork.LoadLevel("Lobby");
         }
     }
@@ -111,34 +112,39 @@ public class Loading : MonoBehaviour
 
     private void LogIn()
     {
-        LoginWithAndroidDeviceIDRequest req = new LoginWithAndroidDeviceIDRequest()
-        {
-            TitleId = PlayFabSettings.TitleId,
-            AndroidDeviceId = SystemInfo.deviceUniqueIdentifier,
-            CreateAccount = true,
-            InfoRequestParameters = new GetPlayerCombinedInfoRequestParams()
-            {
-                GetUserAccountInfo = true
-            }
-        };
-        PlayFabClientAPI.LoginWithAndroidDeviceID(req, (LoginResult res) =>
-        {
-            LocalData.PlayFabId = res.PlayFabId;
-            LocalData.SessionTicket = res.SessionTicket;
-            string displayName = res.InfoResultPayload.AccountInfo.TitleInfo.DisplayName;
-            LocalData.DisplayName = displayName == "" ? res.PlayFabId.Substring(0,5) : displayName;
-            _loging = 1;
-        },
-        (PlayFabError err) =>
-        {
-            statusText.text = err.ErrorMessage;
-            //statusText.color = Color.red;
-            string http = string.Format("HTTP:{0}", err.HttpCode);
-            string message = string.Format("ERROR:{0} -- {1}", err.Error, err.ErrorMessage);
-            string details = string.Empty;
-            Debug.LogError(string.Format("{0}\n {1}\n {2}\n", http, message, details));
-            _loging = 0;
-        });
+        LocalData.PlayFabId = "res.PlayFabId";
+        LocalData.SessionTicket = "res.SessionTicket";
+        LocalData.DisplayName = "NAME";
+        _loging = 1;
+
+        // LoginWithAndroidDeviceIDRequest req = new LoginWithAndroidDeviceIDRequest()
+        // {
+        //     TitleId = PlayFabSettings.TitleId,
+        //     AndroidDeviceId = SystemInfo.deviceUniqueIdentifier,
+        //     CreateAccount = true,
+        //     InfoRequestParameters = new GetPlayerCombinedInfoRequestParams()
+        //     {
+        //         GetUserAccountInfo = true
+        //     }
+        // };
+        // PlayFabClientAPI.LoginWithAndroidDeviceID(req, (LoginResult res) =>
+        // {
+        //     LocalData.PlayFabId = res.PlayFabId;
+        //     LocalData.SessionTicket = res.SessionTicket;
+        //     string displayName = res.InfoResultPayload.AccountInfo.TitleInfo.DisplayName;
+        //     LocalData.DisplayName = displayName == "" ? res.PlayFabId.Substring(0,5) : displayName;
+        //     _loging = 1;
+        // },
+        // (PlayFabError err) =>
+        // {
+        //     statusText.text = err.ErrorMessage;
+        //     //statusText.color = Color.red;
+        //     string http = string.Format("HTTP:{0}", err.HttpCode);
+        //     string message = string.Format("ERROR:{0} -- {1}", err.Error, err.ErrorMessage);
+        //     string details = string.Empty;
+        //     Debug.LogError(string.Format("{0}\n {1}\n {2}\n", http, message, details));
+        //     _loging = 0;
+        // });
     }
 
     private bool ConnectToPhoton()
